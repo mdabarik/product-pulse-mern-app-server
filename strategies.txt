@@ -28,4 +28,7 @@
 - create privateRoute (with state redirect)
 - loggedin user can't access login/register page
 - implement logged out feature on dashboard
-- todo: create useAxiosSecure and useAxiosPublic hook
+- create useAxiosSecure and useAxiosPublic hook
+- todo: save signup and google signin user in database
+- set jwt using localstorage
+- todo: set mongodb credentials in server index.js
