@@ -38,6 +38,12 @@
 - display dynamic users on (admin - manage users page)
 - implement make moderator and make admin functinality (admin - manage users page)
 -* todo: filter, pagination [optonal]
+- design profile page - (normal, admin, moderator)
+- hide subscription button for (moderator & admin)
+- design coupon page - (admin - manage coupons)
+- create a hooks useAllCoupons
+
+
 - todo: design html & css for add new product (normal - add new product)
 - todo: create a hook to save image on imgbb
 - todo: add functionality of add new product and save it on database

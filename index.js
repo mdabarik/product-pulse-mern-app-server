@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 /*------MongoDB Database-----*/
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.waijmz7.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
     serverApi: {
@@ -110,6 +110,48 @@ async function run() {
 
 
         /*-------- coupons related api's ---------*/
+        const couponsCollection = client.db("ProductPulseDB").collection("coupons");
+        app.get('/all-coupons/:email', verifyToken, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            // console.log(email, 'req, users/');
+            const result = await couponsCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.delete('/coupons/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await couponsCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        app.post('/coupons/', verifyToken, verifyAdmin, async (req, res) => {
+            const coupon = req.body;
+            const result = await couponsCollection.insertOne(coupon);
+            res.send(result);
+        })
+
+        app.get('/coupons/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await couponsCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.patch('/coupons/:id', async (req, res) => {
+            const item = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            console.log('coupon patch id,', item);
+            const updatedDoc = {
+              $set: {
+                couponCode: item?.couponCode, expireDate: item?.expireDate, couponDesc: item?.couponDesc, discAmount: item?.discAmount
+              }
+            }
+            const result = await couponsCollection.updateOne(filter, updatedDoc)
+            res.send(result);
+          })
+      
 
 
         await client.db("admin").command({ ping: 1 });
