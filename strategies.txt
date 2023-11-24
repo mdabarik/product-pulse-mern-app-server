@@ -23,12 +23,21 @@
 - implement login & register functionality
 - implement logout functionality on navbar dropdown
 - remove login from navbar on successful login and display dropdown
--* todo: create 3 users, normal, moderator, admin(by changing database)
+- create 3 users, normal, moderator, admin(by changing database)
 -* todo: login & registration form validation
 - create privateRoute (with state redirect)
 - loggedin user can't access login/register page
 - implement logged out feature on dashboard
 - create useAxiosSecure and useAxiosPublic hook
-- todo: save signup and google signin user in database
+- save signup and google signin user in database
 - set jwt using localstorage
-- todo: set mongodb credentials in server index.js
+- set mongodb credentials in server index.js
+- create useRole hook and display menu according to the userRole
+- create users table html & css (admin - manage users)
+- create a hook useAllUsers and fetch all users using tanstack
+- display dynamic users on (admin - manage users page)
+- implement make moderator and make admin functinality (admin - manage users page)
+-* todo: filter, pagination [optonal]
+- todo: design html & css for add new product (normal - add new product)
+- todo: create a hook to save image on imgbb
+- todo: add functionality of add new product and save it on database

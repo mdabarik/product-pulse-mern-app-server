@@ -34,7 +34,7 @@ async function run() {
             res.send({ token });
         })
 
-        /*--------verifyToken middleware---------*/
+        /*--------middlewares---------*/
         const verifyToken = (req, res, next) => {
             console.log('inside verify token', req.headers.authorization);
             if (!req.headers.authorization) {
@@ -50,18 +50,66 @@ async function run() {
             })
         }
 
-        /*--------Save Register User Api---------*/
+        // use verify admin after verifyToken
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            // console.log('veryfiy adming', req.decoded);
+            const query = { userEmail: email };
+            const user = await usersCollection.findOne(query);
+            // console.log(user, 'user verfad');
+            const isAdmin = user?.userRole === 'admin';
+            if (!isAdmin) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
+        }
+
+        /*-------- users related api's ---------*/
         app.post('/users', async (req, res) => {
             const user = req.body;
             console.log('/users', user);
-            const query = { email: user?.email }
+            const query = { userEmail: user?.email }
             const existingUser = await usersCollection.findOne(query);
             if (existingUser) {
-              return res.send({ message: 'user already exists', insertedId: null })
+                return res.send({ message: 'user already exists', insertedId: null })
             }
             const result = await usersCollection.insertOne(user);
             res.send(result);
         })
+
+        app.get('/users/:email', async (req, res) => {
+            const email = req?.params?.email;
+            // console.log('users/email', email);
+            const result = await usersCollection.findOne({ userEmail: email })
+            // console.log(result);
+            res.send(result);
+        })
+
+        app.get('/all-users/:email', verifyToken, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            // console.log(email, 'req, users/');
+            const result = await usersCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.patch('/users/:email', verifyToken, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            const userRole = req.body.userRole;
+            const filter = { userEmail: email };
+            const updatedDoc = {
+                $set: {
+                    userRole: userRole
+                }
+            }
+            const result = await usersCollection.updateMany(filter, updatedDoc);
+            console.log(email, userRole, 'inside patch users/email');
+            res.send(result)
+        })
+
+        /*-------- products related api's ---------*/
+
+
+        /*-------- coupons related api's ---------*/
 
 
         await client.db("admin").command({ ping: 1 });
