@@ -1,0 +1,31 @@
+
+- create product-pulse-client (install basics packages)
+- create product-pulse-server (install basics packages)
+- create .env on server and .env.local on client with .*-examples for future reference
+- create folder structures on client (base)
+- add firebase credentials on client on .env.local
+- create routes, home page, error page
+- create main and dashboard layout
+- create website container (max width 1280) & off react/prop-types
+- create navbar & footer on client
+- create products, login & register page
+- install react-helmet-async and set it on main.jsx
+- create wireframe of navbar & footer
+- create dashboard layout
+- add all routes (normaluser, moderator, admin)
+- create dashboard routes in Routes.jsx
+- add active route functionality on dashboard
+- select color pallate for entire website "primaryColor: blue"
+- design navbar with primary color
+- break down all sections of home page & product page
+- create login and register page static
+- install and implement react-hot-toast
+- implement login & register functionality
+- implement logout functionality on navbar dropdown
+- remove login from navbar on successful login and display dropdown
+-* todo: create 3 users, normal, moderator, admin(by changing database)
+-* todo: login & registration form validation
+- create privateRoute (with state redirect)
+- loggedin user can't access login/register page
+- implement logged out feature on dashboard
+- todo: create useAxiosSecure and useAxiosPublic hook
