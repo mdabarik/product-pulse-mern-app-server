@@ -52,4 +52,7 @@
 -* todo: one user can't add more than one product without subscription
 - implement credit card payment using stripe
 -* todo: coupon system on payment modal/new page
-- todo: design products page
+- design products page & search functionality and pagiatnion
+- product details page - add review & edit review 
+- upvote and downvote functionality added
+- todo: home page slider, featured product, trending product, coupon carousel
