@@ -121,6 +121,11 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/get-all-products', verifyToken, async (req, res) => {
+            const result = await productsCollection.find().toArray();
+            res.send(result);
+        })
+
         // /products/
         app.delete('/products/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
@@ -152,6 +157,39 @@ async function run() {
                 }
             }
             const result = await productsCollection.updateOne(filter, updatedDoc)
+            res.send(result);
+        })
+
+        app.patch('/products/update-status/:id', async (req, res) => {
+            const product = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            console.log('coupon patch id,', product);
+            const updatedDoc = {
+                $set: {
+                    prodStatus: product?.prodStatus
+                }
+            }
+            const result = await productsCollection.updateOne(filter, updatedDoc)
+            res.send(result);
+        })
+
+        app.patch('/products/update-feature/:id', async (req, res) => {
+            const product = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            console.log('coupon patch id,', product);
+            const updatedDoc = {
+                $set: {
+                    prodIsFeatured: product?.prodIsFeatured
+                }
+            }
+            const result = await productsCollection.updateOne(filter, updatedDoc)
+            res.send(result);
+        })
+        // /get-all-reported-products
+        app.get('/get-all-reported-products', verifyToken, async (req, res) => {
+            const result = await productsCollection.find({ 'prodIsReported': 'yes' }).toArray();
             res.send(result);
         })
 
