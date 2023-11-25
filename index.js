@@ -3,6 +3,8 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const port = process.env.PORT || 8888;
 
 /*------middleware-----*/
@@ -79,9 +81,9 @@ async function run() {
 
         app.get('/users/:email', async (req, res) => {
             const email = req?.params?.email;
-            // console.log('users/email', email);
+            console.log('users/email', email);
             const result = await usersCollection.findOne({ userEmail: email })
-            // console.log(result);
+            console.log(result);
             res.send(result);
         })
 
@@ -106,6 +108,25 @@ async function run() {
             res.send(result)
         })
 
+        // /user-subscription
+        app.patch('/user-subscription/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            // const userRole = req.body.userRole;
+            const filter = { userEmail: email };
+            const updatedDoc = {
+                $set: {
+                    status: 'Verified',
+                    isSubscribed: 'yes'
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updatedDoc);
+            // console.log(email, userRole, 'inside patch users/email');
+            res.send(result)
+        })
+
+
+
+
         /*-------- products related api's ---------*/
         const productsCollection = client.db("ProductPulseDB").collection("products");
         app.post('/products', verifyToken, async (req, res) => {
@@ -117,12 +138,12 @@ async function run() {
 
         app.get('/all-products/:email', verifyToken, async (req, res) => {
             const email = req?.params?.email;
-            const result = await productsCollection.find({ 'prodOwnerInfo.email': email }).toArray();
+            const result = await productsCollection.find({ 'prodOwnerInfo.email': email }).sort({ prodStatus: -1 }).toArray();
             res.send(result);
         })
 
         app.get('/get-all-products', verifyToken, async (req, res) => {
-            const result = await productsCollection.find().toArray();
+            const result = await productsCollection.find().sort({ prodStatus: -1 }).toArray();
             res.send(result);
         })
 
@@ -237,6 +258,54 @@ async function run() {
             const result = await couponsCollection.updateOne(filter, updatedDoc)
             res.send(result);
         })
+
+        /********-------------- Start Payment Related API's ------------------- ********/
+        const paymentsCollection = client.db("ProductPulseDB").collection("payments");
+        // payment intent
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            console.log(amount, 'amount inside the intent')
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        });
+
+
+        app.get('/payments/:email', verifyToken, async (req, res) => {
+            const query = { email: req.params.email }
+            if (req.params.email !== req.decoded.email) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            const result = await paymentCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.post('/payments', async (req, res) => {
+            const payment = req.body;
+            const paymentResult = await paymentsCollection.insertOne(payment);
+
+            //  carefully delete each item from the cart
+            // console.log('payment info', payment);
+            // const query = {
+            //     _id: {
+            //         $in: payment.cartIds.map(id => new ObjectId(id))
+            //     }
+            // };
+
+            // const deleteResult = await cartCollection.deleteMany(query);
+
+            res.send({ paymentResult });
+        })
+        /*----------------- End Payment Related API's ------------------- ********/
+
 
 
 
