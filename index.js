@@ -355,6 +355,49 @@ async function run() {
         /*----------------- End Payment Related API's ------------------- ********/
 
 
+        /*----------------- Start Votes(Upvotes, Downvotes) Related API's ------------------- ********/
+        // /votes/${_id}
+        const votesCollection = client.db("ProductPulseDB").collection("votes");
+        app.post('/votes', async (req, res) => {
+            const body = req.body;
+            const votes = {
+                userEmail: body?.userEmail,
+                prodId: body?.prodId,
+                types: body?.types
+            }
+            const result = await votesCollection.insertOne(votes);
+
+            // console.log('/votes route', result);
+            res.send(result)
+        })
+
+        app.get('/votes', async(req, res) => {
+            const id = req?.query?.id;
+            const email = req?.query?.email;
+            console.log(req.query, 'query');
+            const query = {
+                prodId: id,
+                userEmail: email,
+                types: 'upvote'
+            }
+            const result = await votesCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.get('/count-votes/:id', async(req, res) => {
+            const id = req?.params?.id;
+            const query = {
+                prodId: id,
+                types: 'upvote'
+            }
+            const result = await votesCollection.find(query).toArray();
+            res.send(result);
+        })
+
+
+        /*----------------- End Votes(Upvotes, Downvotes) Related API's ------------------- ********/
+
+
 
 
         await client.db("admin").command({ ping: 1 });
