@@ -107,6 +107,54 @@ async function run() {
         })
 
         /*-------- products related api's ---------*/
+        const productsCollection = client.db("ProductPulseDB").collection("products");
+        app.post('/products', verifyToken, async (req, res) => {
+            const newProduct = req.body;
+            console.log(newProduct);
+            const result = await productsCollection.insertOne(newProduct);
+            res.send(result);
+        })
+
+        app.get('/all-products/:email', verifyToken, async (req, res) => {
+            const email = req?.params?.email;
+            const result = await productsCollection.find({ 'prodOwnerInfo.email': email }).toArray();
+            res.send(result);
+        })
+
+        // /products/
+        app.delete('/products/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await productsCollection.deleteOne(query);
+            res.send(result);
+        })
+        // /single-product/${id}
+        app.get('/single-product/:id', verifyToken, async (req, res) => {
+            console.log(req.params.id);
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await productsCollection.findOne(query);
+            res.send(result);
+        })
+        // products
+        app.patch('/products/:id', async (req, res) => {
+            const product = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            console.log('coupon patch id,', product);
+            const updatedDoc = {
+                $set: {
+                    prodName: product?.prodName,
+                    prodDesc: product?.prodDesc,
+                    prodImg: product?.prodImg,
+                    prodExtLink: product?.prodExtLink,
+                    prodTags: product?.prodTags,
+                }
+            }
+            const result = await productsCollection.updateOne(filter, updatedDoc)
+            res.send(result);
+        })
+
 
 
         /*-------- coupons related api's ---------*/
@@ -144,14 +192,14 @@ async function run() {
             const filter = { _id: new ObjectId(id) }
             console.log('coupon patch id,', item);
             const updatedDoc = {
-              $set: {
-                couponCode: item?.couponCode, expireDate: item?.expireDate, couponDesc: item?.couponDesc, discAmount: item?.discAmount
-              }
+                $set: {
+                    couponCode: item?.couponCode, expireDate: item?.expireDate, couponDesc: item?.couponDesc, discAmount: item?.discAmount
+                }
             }
             const result = await couponsCollection.updateOne(filter, updatedDoc)
             res.send(result);
-          })
-      
+        })
+
 
 
         await client.db("admin").command({ ping: 1 });

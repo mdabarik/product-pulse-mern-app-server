@@ -42,8 +42,15 @@
 - hide subscription button for (moderator & admin)
 - design coupon page - (admin - manage coupons)
 - create a hooks useAllCoupons
+-* todo: form validation (add new coupon, edit coupon)
+-* todo: admin can't change his role (hide loggedin admin) [admin - user management]
+- design html & css for add new product (normal - add new product)
+- create a hook to save image on imgbb
+- add functionality of add new product and save it on database (normal - add new product)
+- manage added product (edit, delete, update)
 
 
-- todo: design html & css for add new product (normal - add new product)
-- todo: create a hook to save image on imgbb
-- todo: add functionality of add new product and save it on database
+- todo: review products (moderator - review products)
+- todo: one user can't add more than one product without subscription
+- todo: implement credit card payment using stripe
+- todo: coupon system on payment modal/new page
