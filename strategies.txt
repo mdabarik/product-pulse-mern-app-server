@@ -48,9 +48,7 @@
 - create a hook to save image on imgbb
 - add functionality of add new product and save it on database (normal - add new product)
 - manage added product (edit, delete, update)
-
-
-- todo: review products (moderator - review products)
-- todo: one user can't add more than one product without subscription
-- todo: implement credit card payment using stripe
-- todo: coupon system on payment modal/new page
+- review products (moderator - review products)
+-* todo: one user can't add more than one product without subscription
+- implement credit card payment using stripe
+-* todo: coupon system on payment modal/new page
