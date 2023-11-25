@@ -208,6 +208,21 @@ async function run() {
             const result = await productsCollection.updateOne(filter, updatedDoc)
             res.send(result);
         })
+
+
+        app.patch('/report-prod/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    prodIsReported: 'yes'
+                }
+            }
+            const result = await productsCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+
         // /get-all-reported-products
         app.get('/get-all-reported-products', verifyToken, async (req, res) => {
             const result = await productsCollection.find({ 'prodIsReported': 'yes' }).toArray();
