@@ -263,6 +263,14 @@ async function run() {
             res.send({ count });
         })
 
+        app.get('/single-prod/:id', async (req, res) => {
+            console.log(req.params.id);
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id), prodStatus: 'accepted' };
+            const result = await productsCollection.findOne(query);
+            res.send(result);
+        })
+
 
         /*-------- coupons related api's ---------*/
         const couponsCollection = client.db("ProductPulseDB").collection("coupons");
@@ -370,8 +378,24 @@ async function run() {
             // console.log('/votes route', result);
             res.send(result)
         })
+        app.put('/votes', async (req, res) => {
+            const body = req.body;
+            const updatedDoc = {
+                $set: {
+                    userEmail: body?.userEmail,
+                    prodId: body?.prodId,
+                    types: body?.types
+                }
+            }
+            const filter = {
+                userEmail: body?.userEmail,
+                prodId: body?.prodId,
+            };
+            const result = await votesCollection.updateOne(filter, updatedDoc, { upsert: true });
+            res.send(result)
+        })
 
-        app.get('/votes', async(req, res) => {
+        app.get('/votes', async (req, res) => {
             const id = req?.query?.id;
             const email = req?.query?.email;
             console.log(req.query, 'query');
@@ -384,7 +408,7 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/count-votes/:id', async(req, res) => {
+        app.get('/count-votes/:id', async (req, res) => {
             const id = req?.params?.id;
             const query = {
                 prodId: id,
@@ -395,8 +419,61 @@ async function run() {
         })
 
 
-        /*----------------- End Votes(Upvotes, Downvotes) Related API's ------------------- ********/
+        /*--------------- End Votes(Upvotes, Downvotes) Related API's ---------------*/
 
+
+
+        /*----------------- Review Related Api's ------------------- */
+        const reviewsCollection = client.db("ProductPulseDB").collection("reviews");
+        app.put('/add-review', async (req, res) => {
+            const review = req.body;
+            // console.log(review, 'review');
+            const filter = {
+                userEmail: review?.userEmail,
+                productId: review?.productId
+            };
+            const updatedDoc = {
+                $set: {
+                    userName: review.userName,
+                    userEmail: review.userEmail,
+                    userPhoto: review.userPhoto,
+                    userRating: review.userRating,
+                    userComment: review.userComment,
+                    productId: review.productId,
+                },
+            };
+            const result = await reviewsCollection.updateOne(filter, updatedDoc, { upsert: true });
+            res.send(result)
+        })
+
+        app.get('/review', async (req, res) => {
+            const id = req.query.id;
+            const email = req.query.email;
+            const query = {
+                productId: id,
+                userEmail: email,
+            }
+            console.log(query, 'query, review');
+            const result = await reviewsCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.get('/all-reviews/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                productId: id
+            }
+            const result = await reviewsCollection.find(query).toArray();
+
+            const sumUserRating = result.reduce((sum, review) => sum + review.userRating, 0);
+            console.log(sumUserRating);
+
+            const prodRating = {
+                numRating: result.length,
+                averageRating: sumUserRating / result.length
+            }
+            res.send(prodRating)
+        })
 
 
 
