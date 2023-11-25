@@ -214,6 +214,54 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/all-products-public', async (req, res) => {
+            const page = parseInt(req?.query?.page) - 1;
+            const limit = parseInt(req?.query?.limit);
+            const search = req?.query?.search;
+            const skip = page * limit;
+
+            let query = {
+                prodStatus: 'accepted'
+            }
+
+            // if (search) {
+            //     query = {...query, prodTags: { $in: [search] } }
+            // }
+
+            const result = await productsCollection.find(query).skip(skip).limit(limit).toArray();
+
+            // console.log(result, 'result pagin');
+            res.send(result);
+        })
+
+        // /get-all-accpeted-products
+        app.get('/get-all-accpeted-products', async (req, res) => {
+            const search = req?.query?.search;
+            let query = {
+                prodStatus: 'accepted',
+                prodTags: { $in: [search] }
+            }
+            const result = await productsCollection.find(query).toArray();
+            // console.log(result, 'acccptlkajdf jadf');
+            res.send(result);
+        })
+
+        app.get('/count-accepted-prods', async (req, res) => {
+            const search = req?.query?.search;
+            let query = {
+                prodStatus: 'accepted'
+            }
+            if (search != 'null' && search.trim() != '') {
+                console.log('serach key', search);
+                query = {
+                    prodStatus: 'accepted',
+                    prodTags: { $in: [search] }
+                }
+            }
+            console.log(search, 'serach key');
+            const count = await productsCollection.countDocuments(query)
+            res.send({ count });
+        })
 
 
         /*-------- coupons related api's ---------*/
@@ -249,7 +297,7 @@ async function run() {
             const item = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
-            console.log('coupon patch id,', item);
+            // console.log('coupon patch id,', item);
             const updatedDoc = {
                 $set: {
                     couponCode: item?.couponCode, expireDate: item?.expireDate, couponDesc: item?.couponDesc, discAmount: item?.discAmount

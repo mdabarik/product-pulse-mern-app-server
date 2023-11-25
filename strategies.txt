@@ -52,3 +52,4 @@
 -* todo: one user can't add more than one product without subscription
 - implement credit card payment using stripe
 -* todo: coupon system on payment modal/new page
+- todo: design products page
