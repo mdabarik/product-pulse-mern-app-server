@@ -101,7 +101,7 @@ async function run() {
         app.get('/all-users/:email', verifyToken, verifyAdmin, async (req, res) => {
             const email = req.params.email;
             // console.log(email, 'req, users/');
-            const result = await usersCollection.find().toArray();
+            const result = await usersCollection.find().sort({ userRole: 1 }).toArray();
             res.send(result);
         })
 
@@ -647,6 +647,89 @@ async function run() {
             res.send(prodRating)
         })
 
+
+
+        /*----------------- Admin Stats Related Api's ------------------- */
+        // /admin-stats
+        app.get('/admin-stats', async (req, res) => {
+            // total user *
+            // total products *
+            // total accepted products
+            // total pending products
+            // total rejected products
+            // total reviews *
+            const totalUsers = await usersCollection.countDocuments();
+            const totalProducts = await productsCollection.countDocuments();
+            const totalReviews = await reviewsCollection.countDocuments();
+            const totalAcceptedProds = await productsCollection.countDocuments({ prodStatus: 'accepted' });
+            const totalPendingProds = await productsCollection.countDocuments({ prodStatus: 'pending' });
+            const totalRejectedProds = await productsCollection.countDocuments({ prodStatus: 'Rejected' });
+            const totalReportedProds = await productsCollection.countDocuments({ prodIsReported: 'yes' });
+            const doc = {
+                users: totalUsers,
+                products: totalProducts,
+                reviews: totalReviews,
+                pendingProd: totalPendingProds,
+                rejectedProd: totalRejectedProds,
+                acceptedProd: totalAcceptedProds,
+                reportedProd: totalReportedProds
+            }
+            console.log('doc,', doc);
+            res.send(doc);
+        })
+        app.get('/moderator-stats', async (req, res) => {
+            // total user *
+            // total products *
+            // total accepted products
+            // total pending products
+            // total rejected products
+            // total reviews *
+            const totalUsers = await usersCollection.countDocuments();
+            const totalProducts = await productsCollection.countDocuments();
+            const totalReviews = await reviewsCollection.countDocuments();
+            const totalAcceptedProds = await productsCollection.countDocuments({ prodStatus: 'accepted' });
+            const totalPendingProds = await productsCollection.countDocuments({ prodStatus: 'pending' });
+            const totalRejectedProds = await productsCollection.countDocuments({ prodStatus: 'Rejected' });
+            const totalReportedProds = await productsCollection.countDocuments({ prodIsReported: 'yes' });
+            const doc = {
+                users: totalUsers,
+                products: totalProducts,
+                reviews: totalReviews,
+                pendingProd: totalPendingProds,
+                rejectedProd: totalRejectedProds,
+                acceptedProd: totalAcceptedProds,
+                reportedProd: totalReportedProds
+            }
+            console.log('doc,', doc);
+            res.send(doc);
+        })
+        app.get('/user-stats', async (req, res) => {
+            // total user *
+            // total products *
+            // total accepted products
+            // total pending products
+            // total rejected products
+            // total reviews *
+            const email = req.query.email;
+            const totalUsers = await usersCollection.countDocuments();
+            const totalProducts = await productsCollection.countDocuments();
+            const totalReviews = await reviewsCollection.countDocuments();
+            const totalAcceptedProds = await productsCollection.countDocuments({ prodStatus: 'accepted', 'prodOwnerInfo.email': email });
+            const totalPendingProds = await productsCollection.countDocuments({ prodStatus: 'pending', 'prodOwnerInfo.email': email });
+            const totalRejectedProds = await productsCollection.countDocuments({ prodStatus: 'Rejected', 'prodOwnerInfo.email': email });
+            const totalReportedProds = await productsCollection.countDocuments({ prodIsReported: 'yes', 'prodOwnerInfo.email': email });
+            const doc = {
+                users: totalUsers,
+                products: totalProducts,
+                reviews: totalReviews,
+                pendingProd: totalPendingProds,
+                rejectedProd: totalRejectedProds,
+                acceptedProd: totalAcceptedProds,
+                reportedProd: totalReportedProds
+            }
+            console.log('doc,', doc);
+            res.send(doc);
+        })
 
 
         await client.db("admin").command({ ping: 1 });
