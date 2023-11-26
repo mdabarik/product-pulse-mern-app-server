@@ -147,6 +147,15 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/get-featured-products', async (req, res) => {
+            const limit = parseInt(req.query.limit);
+            const query = {
+                prodIsFeatured: 'yes'
+            }
+            const result = await productsCollection.find(query).limit(limit).toArray();
+            res.send(result);
+        })
+
         app.get('/all-products/:email', verifyToken, async (req, res) => {
             const email = req?.params?.email;
             const result = await productsCollection.find({ 'prodOwnerInfo.email': email }).sort({ prodStatus: -1 }).toArray();
@@ -220,7 +229,6 @@ async function run() {
             res.send(result);
         })
 
-
         app.patch('/report-prod/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
@@ -232,7 +240,6 @@ async function run() {
             const result = await productsCollection.updateOne(filter, updatedDoc);
             res.send(result);
         })
-
 
         // /get-all-reported-products
         app.get('/get-all-reported-products', verifyToken, async (req, res) => {
@@ -249,10 +256,6 @@ async function run() {
             let query = {
                 prodStatus: 'accepted'
             }
-
-            // if (search) {
-            //     query = {...query, prodTags: { $in: [search] } }
-            // }
 
             const result = await productsCollection.find(query).skip(skip).limit(limit).toArray();
 
@@ -362,23 +365,19 @@ async function run() {
 
         /********-------------- Start Payment Related API's ------------------- ********/
         const paymentsCollection = client.db("ProductPulseDB").collection("payments");
-        // payment intent
         app.post('/create-payment-intent', async (req, res) => {
             const { price } = req.body;
             const amount = parseInt(price * 100);
             // console.log(amount, 'amount inside the intent')
-
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount,
                 currency: 'usd',
                 payment_method_types: ['card']
             });
-
             res.send({
                 clientSecret: paymentIntent.client_secret
             })
         });
-
 
         app.get('/payments/:email', verifyToken, async (req, res) => {
             const query = { email: req.params.email }
@@ -460,10 +459,9 @@ async function run() {
                 prodId: body?.prodId,
             };
             const result = await votesCollection.updateOne(filter, updatedDoc, { upsert: true });
-            console.log(result, 'result add or update');
+            // console.log(result, 'result add or update');
             res.send(result)
         })
-
 
         app.post('/votes', async (req, res) => {
             const body = req.body;
@@ -473,10 +471,10 @@ async function run() {
                 types: body?.types
             }
             const result = await votesCollection.insertOne(votes);
-
             // console.log('/votes route', result);
             res.send(result)
         })
+
         app.put('/votes', async (req, res) => {
             const body = req.body;
             const updatedDoc = {
@@ -516,8 +514,6 @@ async function run() {
             const result = await votesCollection.find(query).toArray();
             res.send(result);
         })
-
-
         /*--------------- End Votes(Upvotes, Downvotes) Related API's ---------------*/
 
 
