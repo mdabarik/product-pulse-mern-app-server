@@ -22,6 +22,17 @@ const client = new MongoClient(uri, {
     }
 });
 
+/** --------Utils IsExpired Date or Not-------- **/
+const moment = require('moment');
+function isDateExpired(inputDate) {
+    // Convert the input date string to a Moment.js object
+    var inputMoment = moment(inputDate, 'YYYY-MM-DD');
+    // Get the current date with Moment.js
+    var currentMoment = moment();
+    // Compare the input date with the current date
+    return inputMoment.isBefore(currentMoment);
+}
+
 async function run() {
     try {
 
@@ -296,12 +307,14 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/get-active-token', async(req, res) => {
-            const query = {
-                couponStatus: 'active'
-            }
+        app.get('/get-active-token', async (req, res) => {
             const result = await couponsCollection.find().toArray();
-            res.send(result);
+            // extract active coupons
+            const activeCoupon = result?.filter(coupon => {
+                // console.log('coupon');
+                return !isDateExpired(coupon?.expireDate)
+            })
+            res.send(activeCoupon);
         })
 
         app.delete('/coupons/:id', verifyToken, verifyAdmin, async (req, res) => {

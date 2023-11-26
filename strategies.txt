@@ -55,6 +55,7 @@
 - design products page & search functionality and pagiatnion
 - product details page - add review & edit review 
 - upvote and downvote functionality added
-- todo: home page slider, featured product, trending product, coupon carousel
+- home page slider, coupon carousel
+- todo: featured product, trending product
 
 
