@@ -272,6 +272,15 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/verified-prods', async (req, res) => {
+            let query = {
+                prodStatus: 'accepted',
+            }
+            const result = await productsCollection.find(query).toArray();
+            console.log(result, 'res adf adf');
+            res.send(result);
+        })
+
         app.get('/count-accepted-prods', async (req, res) => {
             const search = req?.query?.search;
             let query = {
@@ -383,26 +392,13 @@ async function run() {
         app.post('/payments', async (req, res) => {
             const payment = req.body;
             const paymentResult = await paymentsCollection.insertOne(payment);
-
-            //  carefully delete each item from the cart
-            // console.log('payment info', payment);
-            // const query = {
-            //     _id: {
-            //         $in: payment.cartIds.map(id => new ObjectId(id))
-            //     }
-            // };
-
-            // const deleteResult = await cartCollection.deleteMany(query);
-
             res.send({ paymentResult });
         })
         /*----------------- End Payment Related API's ------------------- ********/
 
 
         /*----------------- Start Votes(Upvotes, Downvotes) Related API's ------------------- ********/
-        // /votes/${_id}
         const votesCollection = client.db("ProductPulseDB").collection("votes");
-
         app.get('/get-votes', async (req, res) => {
             const prodId = req.query.id;
             const queryUpvote = {
