@@ -136,6 +136,125 @@ async function run() {
         })
 
 
+        /*----------------- Start Votes(Upvotes, Downvotes) Related API's ------------------- ********/
+        const votesCollection = client.db("ProductPulseDB").collection("votes");
+        app.get('/get-votes', async (req, res) => {
+            const prodId = req.query.id;
+            const queryUpvote = {
+                prodId: prodId,
+                types: 'upvote'
+            }
+            const queryDownvote = {
+                prodId: prodId,
+                types: 'downvote'
+            }
+            // console.log(queryUpvote, queryDownvote);
+            const countUpvotes = await votesCollection.countDocuments(queryUpvote);
+            const countDownvotes = await votesCollection.countDocuments(queryDownvote);
+            const votes = {
+                upvotes: countUpvotes,
+                downvotes: countDownvotes
+            }
+            // console.log('votes', votes);
+            res.send(votes);
+        })
+
+        // /get-user-votes
+        app.get('/get-user-votes', async (req, res) => {
+            const prodId = req.query.id;
+            const email = req.query.email;
+            const queryUpvote = {
+                prodId: prodId,
+                userEmail: email,
+                types: 'upvote'
+            }
+            const queryDownvote = {
+                prodId: prodId,
+                userEmail: email,
+                types: 'downvote',
+            }
+            // console.log(queryUpvote, queryDownvote, 'inside get-user-votes');
+            const countUpvotes = await votesCollection.countDocuments(queryUpvote);
+            const countDownvotes = await votesCollection.countDocuments(queryDownvote);
+            const votes = {
+                upvotes: countUpvotes,
+                downvotes: countDownvotes
+            }
+            // console.log('user votes', votes);
+            res.send(votes);
+        })
+
+        app.put('/add-or-update', async (req, res) => {
+            const body = req.body;
+            console.log(body, 'addorupdate');
+            const updatedDoc = {
+                $set: {
+                    userEmail: body?.userEmail,
+                    prodId: body?.prodId,
+                    types: body?.types
+                }
+            }
+            const filter = {
+                userEmail: body?.userEmail,
+                prodId: body?.prodId,
+            };
+            const result = await votesCollection.updateOne(filter, updatedDoc, { upsert: true });
+            // console.log(result, 'result add or update');
+            res.send(result)
+        })
+
+        app.post('/votes', async (req, res) => {
+            const body = req.body;
+            const votes = {
+                userEmail: body?.userEmail,
+                prodId: body?.prodId,
+                types: body?.types
+            }
+            const result = await votesCollection.insertOne(votes);
+            // console.log('/votes route', result);
+            res.send(result)
+        })
+
+        app.put('/votes', async (req, res) => {
+            const body = req.body;
+            const updatedDoc = {
+                $set: {
+                    userEmail: body?.userEmail,
+                    prodId: body?.prodId,
+                    types: body?.types
+                }
+            }
+            const filter = {
+                userEmail: body?.userEmail,
+                prodId: body?.prodId,
+            };
+            const result = await votesCollection.updateOne(filter, updatedDoc, { upsert: true });
+            res.send(result)
+        })
+
+        app.get('/votes', async (req, res) => {
+            const id = req?.query?.id;
+            const email = req?.query?.email;
+            // console.log(req.query, 'query');
+            const query = {
+                prodId: id,
+                userEmail: email,
+                types: 'upvote'
+            }
+            const result = await votesCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.get('/count-votes/:id', async (req, res) => {
+            const id = req?.params?.id;
+            const query = {
+                prodId: id,
+                types: 'upvote'
+            }
+            const result = await votesCollection.find(query).toArray();
+            res.send(result);
+        })
+        /*--------------- End Votes(Upvotes, Downvotes) Related API's ---------------*/
 
 
         /*-------- products related api's ---------*/
@@ -150,11 +269,126 @@ async function run() {
         app.get('/get-featured-products', async (req, res) => {
             const limit = parseInt(req.query.limit);
             const query = {
-                prodIsFeatured: 'yes'
+                prodIsFeatured: 'yes',
+                prodStatus: 'accepted'
             }
-            const result = await productsCollection.find(query).limit(limit).toArray();
+            const result = await productsCollection.find(query).toArray();
             res.send(result);
         })
+
+        // home page featured product section api
+        // app.get('/get-trending-products', async (req, res) => {
+        //     const pipeline = [
+        //         {
+        //             $lookup: {
+        //                 from: 'votes',
+        //                 let: { productId: '$_id' },
+        //                 pipeline: [
+        //                     {
+        //                         $match: {
+        //                             $expr: {
+        //                                 $eq: ['$prodId', { $toObjectId: '$$productId' }]
+        //                             }
+        //                         }
+        //                     }
+        //                 ],
+        //                 as: 'votes'
+        //             }
+        //         },
+        //         {
+        //             $unwind: '$votes'
+        //         },
+        //         {
+        //             $group: {
+        //                 _id: '$_id',
+        //                 prodName: { $first: '$prodName' },
+        //                 prodDesc: { $first: '$prodDesc' },
+        //                 prodImg: { $first: '$prodImg' },
+        //                 prodExtLink: { $first: '$prodExtLink' },
+        //                 prodTags: { $first: '$prodTags' },
+        //                 prodOwnerInfo: { $first: '$prodOwnerInfo' },
+        //                 prodStatus: { $first: '$prodStatus' },
+        //                 prodUpvotes: { $sum: { $cond: { if: { $eq: ['$votes.types', 'upvote'] }, then: 1, else: 0 } } },
+        //                 prodDownvotes: { $sum: { $cond: { if: { $eq: ['$votes.types', 'downvote'] }, then: 1, else: 0 } } },
+        //                 prodIsFeatured: { $first: '$prodIsFeatured' },
+        //                 prodAddedAt: { $first: '$prodAddedAt' }
+        //             }
+        //         },
+        //         {
+        //             $sort: { prodUpvotes: -1 }
+        //         },
+        //         {
+        //             $limit: 4
+        //         }
+        //     ];
+        //     const result = await productsCollection.aggregate(pipeline).toArray();
+        //     console.log(result, 'from pipeline');
+        //     res.send(result);
+
+        // })
+
+        app.get('/get-trending-products', async (req, res) => {
+            try {
+              const pipeline = [
+                {
+                  $lookup: {
+                    from: 'votes',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                      {
+                        $match: {
+                          $expr: {
+                            $eq: ['$prodId', { $toString: '$$productId' }]
+                          }
+                        }
+                      }
+                    ],
+                    as: 'votes'
+                  }
+                },
+                {
+                  $unwind: {
+                    path: '$votes',
+                    preserveNullAndEmptyArrays: true
+                  }
+                },
+                {
+                  $group: {
+                    _id: '$_id',
+                    prodName: { $first: '$prodName' },
+                    prodDesc: { $first: '$prodDesc' },
+                    prodImg: { $first: '$prodImg' },
+                    prodExtLink: { $first: '$prodExtLink' },
+                    prodTags: { $first: '$prodTags' },
+                    prodOwnerInfo: { $first: '$prodOwnerInfo' },
+                    prodStatus: { $first: '$prodStatus' },
+                    prodUpvotes: { $sum: { $cond: { if: { $eq: ['$votes.types', 'upvote'] }, then: 1, else: 0 } } },
+                    prodDownvotes: { $sum: { $cond: { if: { $eq: ['$votes.types', 'downvote'] }, then: 1, else: 0 } } },
+                    prodIsFeatured: { $first: '$prodIsFeatured' },
+                    prodAddedAt: { $first: '$prodAddedAt' }
+                  }
+                },
+                {
+                  $sort: { prodUpvotes: -1 }
+                },
+                {
+                  $limit: 4
+                }
+              ];
+          
+              const result = await productsCollection.aggregate(pipeline).toArray();
+              console.log(result, 'from pipeline');
+          
+              if (result.length === 0) {
+                console.log('No products found.');
+              }
+          
+              res.send(result);
+            } catch (error) {
+              console.error('Error:', error);
+              res.status(500).send('Internal Server Error');
+            }
+          });
 
         app.get('/all-products/:email', verifyToken, async (req, res) => {
             const email = req?.params?.email;
@@ -396,125 +630,7 @@ async function run() {
         /*----------------- End Payment Related API's ------------------- ********/
 
 
-        /*----------------- Start Votes(Upvotes, Downvotes) Related API's ------------------- ********/
-        const votesCollection = client.db("ProductPulseDB").collection("votes");
-        app.get('/get-votes', async (req, res) => {
-            const prodId = req.query.id;
-            const queryUpvote = {
-                prodId: prodId,
-                types: 'upvote'
-            }
-            const queryDownvote = {
-                prodId: prodId,
-                types: 'downvote'
-            }
-            // console.log(queryUpvote, queryDownvote);
-            const countUpvotes = await votesCollection.countDocuments(queryUpvote);
-            const countDownvotes = await votesCollection.countDocuments(queryDownvote);
-            const votes = {
-                upvotes: countUpvotes,
-                downvotes: countDownvotes
-            }
-            // console.log('votes', votes);
-            res.send(votes);
-        })
 
-        // /get-user-votes
-        app.get('/get-user-votes', async (req, res) => {
-            const prodId = req.query.id;
-            const email = req.query.email;
-            const queryUpvote = {
-                prodId: prodId,
-                userEmail: email,
-                types: 'upvote'
-            }
-            const queryDownvote = {
-                prodId: prodId,
-                userEmail: email,
-                types: 'downvote',
-            }
-            // console.log(queryUpvote, queryDownvote, 'inside get-user-votes');
-            const countUpvotes = await votesCollection.countDocuments(queryUpvote);
-            const countDownvotes = await votesCollection.countDocuments(queryDownvote);
-            const votes = {
-                upvotes: countUpvotes,
-                downvotes: countDownvotes
-            }
-            // console.log('user votes', votes);
-            res.send(votes);
-        })
-
-        app.put('/add-or-update', async (req, res) => {
-            const body = req.body;
-            console.log(body, 'addorupdate');
-            const updatedDoc = {
-                $set: {
-                    userEmail: body?.userEmail,
-                    prodId: body?.prodId,
-                    types: body?.types
-                }
-            }
-            const filter = {
-                userEmail: body?.userEmail,
-                prodId: body?.prodId,
-            };
-            const result = await votesCollection.updateOne(filter, updatedDoc, { upsert: true });
-            // console.log(result, 'result add or update');
-            res.send(result)
-        })
-
-        app.post('/votes', async (req, res) => {
-            const body = req.body;
-            const votes = {
-                userEmail: body?.userEmail,
-                prodId: body?.prodId,
-                types: body?.types
-            }
-            const result = await votesCollection.insertOne(votes);
-            // console.log('/votes route', result);
-            res.send(result)
-        })
-
-        app.put('/votes', async (req, res) => {
-            const body = req.body;
-            const updatedDoc = {
-                $set: {
-                    userEmail: body?.userEmail,
-                    prodId: body?.prodId,
-                    types: body?.types
-                }
-            }
-            const filter = {
-                userEmail: body?.userEmail,
-                prodId: body?.prodId,
-            };
-            const result = await votesCollection.updateOne(filter, updatedDoc, { upsert: true });
-            res.send(result)
-        })
-
-        app.get('/votes', async (req, res) => {
-            const id = req?.query?.id;
-            const email = req?.query?.email;
-            // console.log(req.query, 'query');
-            const query = {
-                prodId: id,
-                userEmail: email,
-                types: 'upvote'
-            }
-            const result = await votesCollection.find(query).toArray();
-            res.send(result);
-        })
-
-        app.get('/count-votes/:id', async (req, res) => {
-            const id = req?.params?.id;
-            const query = {
-                prodId: id,
-                types: 'upvote'
-            }
-            const result = await votesCollection.find(query).toArray();
-            res.send(result);
-        })
-        /*--------------- End Votes(Upvotes, Downvotes) Related API's ---------------*/
 
 
 
