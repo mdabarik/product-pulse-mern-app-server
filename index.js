@@ -276,119 +276,69 @@ async function run() {
             res.send(result);
         })
 
-        // home page featured product section api
-        // app.get('/get-trending-products', async (req, res) => {
-        //     const pipeline = [
-        //         {
-        //             $lookup: {
-        //                 from: 'votes',
-        //                 let: { productId: '$_id' },
-        //                 pipeline: [
-        //                     {
-        //                         $match: {
-        //                             $expr: {
-        //                                 $eq: ['$prodId', { $toObjectId: '$$productId' }]
-        //                             }
-        //                         }
-        //                     }
-        //                 ],
-        //                 as: 'votes'
-        //             }
-        //         },
-        //         {
-        //             $unwind: '$votes'
-        //         },
-        //         {
-        //             $group: {
-        //                 _id: '$_id',
-        //                 prodName: { $first: '$prodName' },
-        //                 prodDesc: { $first: '$prodDesc' },
-        //                 prodImg: { $first: '$prodImg' },
-        //                 prodExtLink: { $first: '$prodExtLink' },
-        //                 prodTags: { $first: '$prodTags' },
-        //                 prodOwnerInfo: { $first: '$prodOwnerInfo' },
-        //                 prodStatus: { $first: '$prodStatus' },
-        //                 prodUpvotes: { $sum: { $cond: { if: { $eq: ['$votes.types', 'upvote'] }, then: 1, else: 0 } } },
-        //                 prodDownvotes: { $sum: { $cond: { if: { $eq: ['$votes.types', 'downvote'] }, then: 1, else: 0 } } },
-        //                 prodIsFeatured: { $first: '$prodIsFeatured' },
-        //                 prodAddedAt: { $first: '$prodAddedAt' }
-        //             }
-        //         },
-        //         {
-        //             $sort: { prodUpvotes: -1 }
-        //         },
-        //         {
-        //             $limit: 4
-        //         }
-        //     ];
-        //     const result = await productsCollection.aggregate(pipeline).toArray();
-        //     console.log(result, 'from pipeline');
-        //     res.send(result);
-
-        // })
 
         app.get('/get-trending-products', async (req, res) => {
             try {
-              const pipeline = [
-                {
-                  $lookup: {
-                    from: 'votes',
-                    let: { productId: '$_id' },
-                    pipeline: [
-                      {
-                        $match: {
-                          $expr: {
-                            $eq: ['$prodId', { $toString: '$$productId' }]
-                          }
+                const pipeline = [
+                    {
+                        $lookup: {
+                            from: 'votes',
+                            let: { productId: '$_id' },
+                            pipeline: [
+                                {
+                                    $match: {
+                                        $expr: {
+                                            $eq: ['$prodId', { $toString: '$$productId' }]
+                                        }
+                                    }
+                                }
+                            ],
+                            as: 'votes'
                         }
-                      }
-                    ],
-                    as: 'votes'
-                  }
-                },
-                {
-                  $unwind: {
-                    path: '$votes',
-                    preserveNullAndEmptyArrays: true
-                  }
-                },
-                {
-                  $group: {
-                    _id: '$_id',
-                    prodName: { $first: '$prodName' },
-                    prodDesc: { $first: '$prodDesc' },
-                    prodImg: { $first: '$prodImg' },
-                    prodExtLink: { $first: '$prodExtLink' },
-                    prodTags: { $first: '$prodTags' },
-                    prodOwnerInfo: { $first: '$prodOwnerInfo' },
-                    prodStatus: { $first: '$prodStatus' },
-                    prodUpvotes: { $sum: { $cond: { if: { $eq: ['$votes.types', 'upvote'] }, then: 1, else: 0 } } },
-                    prodDownvotes: { $sum: { $cond: { if: { $eq: ['$votes.types', 'downvote'] }, then: 1, else: 0 } } },
-                    prodIsFeatured: { $first: '$prodIsFeatured' },
-                    prodAddedAt: { $first: '$prodAddedAt' }
-                  }
-                },
-                {
-                  $sort: { prodUpvotes: -1 }
-                },
-                {
-                  $limit: 4
+                    },
+                    {
+                        $unwind: {
+                            path: '$votes',
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: '$_id',
+                            prodName: { $first: '$prodName' },
+                            prodDesc: { $first: '$prodDesc' },
+                            prodImg: { $first: '$prodImg' },
+                            prodExtLink: { $first: '$prodExtLink' },
+                            prodTags: { $first: '$prodTags' },
+                            prodOwnerInfo: { $first: '$prodOwnerInfo' },
+                            prodStatus: { $first: '$prodStatus' },
+                            prodUpvotes: { $sum: { $cond: { if: { $eq: ['$votes.types', 'upvote'] }, then: 1, else: 0 } } },
+                            prodDownvotes: { $sum: { $cond: { if: { $eq: ['$votes.types', 'downvote'] }, then: 1, else: 0 } } },
+                            prodIsFeatured: { $first: '$prodIsFeatured' },
+                            prodAddedAt: { $first: '$prodAddedAt' }
+                        }
+                    },
+                    {
+                        $sort: { prodUpvotes: -1 }
+                    },
+                    {
+                        $limit: 4
+                    }
+                ];
+
+                const result = await productsCollection.aggregate(pipeline).toArray();
+                console.log(result, 'from pipeline');
+
+                if (result.length === 0) {
+                    console.log('No products found.');
                 }
-              ];
-          
-              const result = await productsCollection.aggregate(pipeline).toArray();
-              console.log(result, 'from pipeline');
-          
-              if (result.length === 0) {
-                console.log('No products found.');
-              }
-          
-              res.send(result);
+
+                res.send(result);
             } catch (error) {
-              console.error('Error:', error);
-              res.status(500).send('Internal Server Error');
+                console.error('Error:', error);
+                res.status(500).send('Internal Server Error');
             }
-          });
+        });
 
         app.get('/all-products/:email', verifyToken, async (req, res) => {
             const email = req?.params?.email;
@@ -666,6 +616,17 @@ async function run() {
             }
             // console.log(query, 'query, review');
             const result = await reviewsCollection.findOne(query);
+            res.send(result);
+        })
+
+        // get all reviews of a product
+        app.get('/get-all-reviews/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                productId: id
+            }
+            console.log(query, 'query get llalal');
+            const result = await reviewsCollection.find(query).toArray();
             res.send(result);
         })
 
