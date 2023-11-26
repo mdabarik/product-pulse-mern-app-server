@@ -80,7 +80,7 @@ async function run() {
         /*-------- users related api's ---------*/
         app.post('/users', async (req, res) => {
             const user = req.body;
-            console.log('/users', user);
+            // console.log('/users', user);
             const query = { userEmail: user?.email }
             const existingUser = await usersCollection.findOne(query);
             if (existingUser) {
@@ -92,9 +92,9 @@ async function run() {
 
         app.get('/users/:email', async (req, res) => {
             const email = req?.params?.email;
-            console.log('users/email', email);
+            // console.log('users/email', email);
             const result = await usersCollection.findOne({ userEmail: email })
-            console.log(result);
+            // console.log(result);
             res.send(result);
         })
 
@@ -115,7 +115,7 @@ async function run() {
                 }
             }
             const result = await usersCollection.updateMany(filter, updatedDoc);
-            console.log(email, userRole, 'inside patch users/email');
+            // console.log(email, userRole, 'inside patch users/email');
             res.send(result)
         })
 
@@ -142,7 +142,7 @@ async function run() {
         const productsCollection = client.db("ProductPulseDB").collection("products");
         app.post('/products', verifyToken, async (req, res) => {
             const newProduct = req.body;
-            console.log(newProduct);
+            // console.log(newProduct);
             const result = await productsCollection.insertOne(newProduct);
             res.send(result);
         })
@@ -167,7 +167,7 @@ async function run() {
         })
         // /single-product/${id}
         app.get('/single-product/:id', verifyToken, async (req, res) => {
-            console.log(req.params.id);
+            // console.log(req.params.id);
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await productsCollection.findOne(query);
@@ -178,7 +178,7 @@ async function run() {
             const product = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
-            console.log('coupon patch id,', product);
+            // console.log('coupon patch id,', product);
             const updatedDoc = {
                 $set: {
                     prodName: product?.prodName,
@@ -196,7 +196,7 @@ async function run() {
             const product = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
-            console.log('coupon patch id,', product);
+            // console.log('coupon patch id,', product);
             const updatedDoc = {
                 $set: {
                     prodStatus: product?.prodStatus
@@ -210,7 +210,7 @@ async function run() {
             const product = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
-            console.log('coupon patch id,', product);
+            // console.log('coupon patch id,', product);
             const updatedDoc = {
                 $set: {
                     prodIsFeatured: product?.prodIsFeatured
@@ -278,19 +278,19 @@ async function run() {
                 prodStatus: 'accepted'
             }
             if (search != 'null' && search.trim() != '') {
-                console.log('serach key', search);
+                // console.log('serach key', search);
                 query = {
                     prodStatus: 'accepted',
                     prodTags: { $in: [search] }
                 }
             }
-            console.log(search, 'serach key');
+            // console.log(search, 'serach key');
             const count = await productsCollection.countDocuments(query)
             res.send({ count });
         })
 
         app.get('/single-prod/:id', async (req, res) => {
-            console.log(req.params.id);
+            // console.log(req.params.id);
             const id = req.params.id;
             const query = { _id: new ObjectId(id), prodStatus: 'accepted' };
             const result = await productsCollection.findOne(query);
@@ -357,7 +357,7 @@ async function run() {
         app.post('/create-payment-intent', async (req, res) => {
             const { price } = req.body;
             const amount = parseInt(price * 100);
-            console.log(amount, 'amount inside the intent')
+            // console.log(amount, 'amount inside the intent')
 
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount,
@@ -402,6 +402,73 @@ async function run() {
         /*----------------- Start Votes(Upvotes, Downvotes) Related API's ------------------- ********/
         // /votes/${_id}
         const votesCollection = client.db("ProductPulseDB").collection("votes");
+
+        app.get('/get-votes', async (req, res) => {
+            const prodId = req.query.id;
+            const queryUpvote = {
+                prodId: prodId,
+                types: 'upvote'
+            }
+            const queryDownvote = {
+                prodId: prodId,
+                types: 'downvote'
+            }
+            // console.log(queryUpvote, queryDownvote);
+            const countUpvotes = await votesCollection.countDocuments(queryUpvote);
+            const countDownvotes = await votesCollection.countDocuments(queryDownvote);
+            const votes = {
+                upvotes: countUpvotes,
+                downvotes: countDownvotes
+            }
+            // console.log('votes', votes);
+            res.send(votes);
+        })
+
+        // /get-user-votes
+        app.get('/get-user-votes', async (req, res) => {
+            const prodId = req.query.id;
+            const email = req.query.email;
+            const queryUpvote = {
+                prodId: prodId,
+                userEmail: email,
+                types: 'upvote'
+            }
+            const queryDownvote = {
+                prodId: prodId,
+                userEmail: email,
+                types: 'downvote',
+            }
+            // console.log(queryUpvote, queryDownvote, 'inside get-user-votes');
+            const countUpvotes = await votesCollection.countDocuments(queryUpvote);
+            const countDownvotes = await votesCollection.countDocuments(queryDownvote);
+            const votes = {
+                upvotes: countUpvotes,
+                downvotes: countDownvotes
+            }
+            // console.log('user votes', votes);
+            res.send(votes);
+        })
+
+        app.put('/add-or-update', async (req, res) => {
+            const body = req.body;
+            console.log(body, 'addorupdate');
+            const updatedDoc = {
+                $set: {
+                    userEmail: body?.userEmail,
+                    prodId: body?.prodId,
+                    types: body?.types
+                }
+            }
+            const filter = {
+                userEmail: body?.userEmail,
+                prodId: body?.prodId,
+            };
+            const result = await votesCollection.updateOne(filter, updatedDoc, { upsert: true });
+            console.log(result, 'result add or update');
+            res.send(result)
+        })
+
+
         app.post('/votes', async (req, res) => {
             const body = req.body;
             const votes = {
@@ -434,7 +501,7 @@ async function run() {
         app.get('/votes', async (req, res) => {
             const id = req?.query?.id;
             const email = req?.query?.email;
-            console.log(req.query, 'query');
+            // console.log(req.query, 'query');
             const query = {
                 prodId: id,
                 userEmail: email,
@@ -489,7 +556,7 @@ async function run() {
                 productId: id,
                 userEmail: email,
             }
-            console.log(query, 'query, review');
+            // console.log(query, 'query, review');
             const result = await reviewsCollection.findOne(query);
             res.send(result);
         })
@@ -502,7 +569,7 @@ async function run() {
             const result = await reviewsCollection.find(query).toArray();
 
             const sumUserRating = result.reduce((sum, review) => sum + review.userRating, 0);
-            console.log(sumUserRating);
+            // console.log(sumUserRating);
 
             const prodRating = {
                 numRating: result.length,
