@@ -296,6 +296,14 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/get-active-token', async(req, res) => {
+            const query = {
+                couponStatus: 'active'
+            }
+            const result = await couponsCollection.find().toArray();
+            res.send(result);
+        })
+
         app.delete('/coupons/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
