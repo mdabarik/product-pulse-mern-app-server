@@ -731,6 +731,70 @@ async function run() {
             res.send(doc);
         })
 
+        /*******------Report Related Apis-------******* */
+        const reportsCollection = client.db("ProductPulseDB").collection("reports");
+        app.get('/is-reported', async (req, res) => {
+            const query = {
+                prodId: req.query.id,
+                userEmail: req.query.email
+            }
+            console.log('ispreort', query);
+            const counts = await reportsCollection.countDocuments(query);
+            const result = {
+                isReported: counts != 0
+            }
+            res.send(result)
+        })
+
+        app.post('/report-prod', async (req, res) => {
+            const reportDoc = req.body;
+            console.log(reportDoc);
+            const result = await reportsCollection.insertOne(reportDoc);
+            res.send(result);
+        })
+
+        app.get('/reported-products', async (req, res) => {
+            try {
+                const pipeline = [
+                    {
+                        $group: {
+                            _id: '$prodId'
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 0,
+                            prodId: { $toString: '$_id' } // Convert ObjectId to string
+                        }
+                    }
+                ];
+
+                const reportedProductIds = await reportsCollection.aggregate(pipeline).toArray();
+
+                const reportedProducts = await productsCollection.find({
+                    $expr: {
+                        $in: [
+                            { $toString: '$_id' }, // Convert ObjectId to string
+                            reportedProductIds.map(p => p.prodId)
+                        ]
+                    }
+                })
+                    //   .sort({ reportedAt: -1 }) // Add this line to sort by reportedAt in descending order
+                    .toArray();
+
+                if (reportedProducts.length === 0) {
+                    console.log('No reported products found.');
+                    res.json([]); // Send an empty array or another appropriate response
+                } else {
+                    res.json(reportedProducts);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                res.status(500).send('Internal Server Error');
+            }
+        });
+
+
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
