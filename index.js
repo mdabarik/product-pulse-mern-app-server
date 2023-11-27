@@ -504,6 +504,25 @@ async function run() {
 
         /*-------- coupons related api's ---------*/
         const couponsCollection = client.db("ProductPulseDB").collection("coupons");
+
+        app.get('/get-coupon', async (req, res) => {
+            // console.log(rq.);
+            const couponCode = req.query.code;
+            const query = {
+                couponCode: couponCode
+            }
+            const result = await couponsCollection.find(query).toArray();
+            console.log(result, 'result....');
+            let details = {};
+            if (parseInt(result[0]?.discAmount) > 0) {
+                details = {
+                    discount: parseInt(result[0]?.discAmount)
+                }
+            }
+            res.send(details);
+        })
+
+
         app.get('/all-coupons/:email', verifyToken, verifyAdmin, async (req, res) => {
             const email = req.params.email;
             // console.log(email, 'req, users/');
