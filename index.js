@@ -100,9 +100,11 @@ async function run() {
         })
 
         app.get('/users/:email', async (req, res) => {
-            const email = req?.params?.email;
-            // console.log('users/email', email);
-            const result = await usersCollection.findOne({ userEmail: email })
+            const email = req?.params?.email.toLowerCase();
+            console.log('users/email/dashboard/anythingwrong', email);
+            const result = await usersCollection.findOne({ 
+                userEmail: { $regex: new RegExp(email, 'i') }
+             })
             // console.log(result);
             res.send(result);
         })
@@ -812,11 +814,11 @@ async function run() {
 
                 const reportedProductIds = await reportsCollection.aggregate(pipeline).toArray();
 
-                const reportedProducts = await productsCollection.find({
+                const reportedProducts = await productsCollection?.find({
                     $expr: {
                         $in: [
                             { $toString: '$_id' }, // Convert ObjectId to string
-                            reportedProductIds.map(p => p.prodId)
+                            reportedProductIds?.map(p => p.prodId)
                         ]
                     }
                 })
