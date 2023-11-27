@@ -113,7 +113,7 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/users/:email', verifyToken, verifyAdmin, async (req, res) => {
+        app.patch('/users/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             const userRole = req.body.userRole;
             const filter = { userEmail: email };
@@ -833,6 +833,13 @@ async function run() {
                 res.status(500).send('Internal Server Error');
             }
         });
+
+        /*---------- sliders api's ----------*/
+        const slidersCollection = client.db("ProductPulseDB").collection("sliders");
+        app.get('/sliders', async(req, res) => {
+            const result = await slidersCollection.find().toArray();
+            res.send(result);
+        })
 
 
 
