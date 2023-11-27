@@ -501,6 +501,19 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/get-prods-me', async (req, res) => {
+            const query = {
+                'prodOwnerInfo.email': req.query.email
+            }
+            console.log(query, 'query---..');
+            const result = await productsCollection.countDocuments(query);
+            const data = {
+                counts: result
+            }
+            console.log(data);
+            res.send(data);
+        })
+
 
         /*-------- coupons related api's ---------*/
         const couponsCollection = client.db("ProductPulseDB").collection("coupons");
