@@ -90,13 +90,17 @@ async function run() {
         app.post('/users', async (req, res) => {
             const user = req.body;
             // console.log('/users', user);
-            const query = { userEmail: user?.email }
+            const query = { userEmail: user?.userEmail }
+            console.log(query, 'google signin post');
             const existingUser = await usersCollection.findOne(query);
             if (existingUser) {
                 return res.send({ message: 'user already exists', insertedId: null })
+            } else {
+                const result = await usersCollection.insertOne(user);
+                res.send(result);
             }
-            const result = await usersCollection.insertOne(user);
-            res.send(result);
+            res.send({});
+
         })
 
         app.get('/users/:email', async (req, res) => {
