@@ -709,8 +709,6 @@ async function run() {
             res.send(prodRating)
         })
 
-
-
         /*----------------- Admin Stats Related Api's ------------------- */
         // /admin-stats
         app.get('/admin-stats', async (req, res) => {
@@ -720,6 +718,7 @@ async function run() {
             const totalAcceptedProds = await productsCollection.countDocuments({ prodStatus: 'accepted' });
             const totalPendingProds = await productsCollection.countDocuments({ prodStatus: 'pending' });
             const totalRejectedProds = await productsCollection.countDocuments({ prodStatus: 'Rejected' });
+            
             const doc = {
                 users: totalUsers,
                 products: totalProducts,
@@ -728,7 +727,7 @@ async function run() {
                 rejectedProd: totalRejectedProds,
                 acceptedProd: totalAcceptedProds,
             }
-            console.log('doc,', doc);
+            // console.log('doc,', doc);
             res.send(doc);
         })
 
