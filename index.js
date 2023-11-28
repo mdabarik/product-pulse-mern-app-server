@@ -852,6 +852,19 @@ async function run() {
         })
 
 
+        // rejected or pending product
+        app.get('/get-rejected-prod/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id, '/get-rejected-prod');
+            const query = {
+                _id: new ObjectId(id),
+                prodStatus: { $in: ['pending', 'Rejected'] }
+            }
+            const result = await productsCollection.findOne(query);
+            res.send(result);
+        })
+
+
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
