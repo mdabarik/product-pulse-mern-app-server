@@ -272,6 +272,10 @@ async function run() {
 
         /*-------- products related api's ---------*/
         const productsCollection = client.db("ProductPulseDB").collection("products");
+        const reportsCollection = client.db("ProductPulseDB").collection("reports");
+        const reviewsCollection = client.db("ProductPulseDB").collection("reviews");
+
+
         app.post('/products', verifyToken, async (req, res) => {
             const newProduct = req.body;
             // console.log(newProduct);
@@ -355,6 +359,7 @@ async function run() {
 
         app.get('/all-products/:email', verifyToken, async (req, res) => {
             const email = req?.params?.email;
+            console.log(email, 'all-products/email');
             const result = await productsCollection.find({ 'prodOwnerInfo.email': email }).sort({ prodStatus: -1 }).toArray();
             res.send(result);
         })
@@ -369,6 +374,10 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await productsCollection.deleteOne(query);
+            const query1 = { prodId: id };
+            const result1 = await reportsCollection.deleteMany(query1);
+            const query2 = { productId: id };
+            const result2 = await reviewsCollection.deleteMany(query2);
             res.send(result);
         })
         // /single-product/${id}
@@ -639,7 +648,6 @@ async function run() {
 
 
         /*----------------- Review Related Api's ------------------- */
-        const reviewsCollection = client.db("ProductPulseDB").collection("reviews");
         app.put('/add-review', async (req, res) => {
             const review = req.body;
             // console.log(review, 'review');
@@ -706,19 +714,12 @@ async function run() {
         /*----------------- Admin Stats Related Api's ------------------- */
         // /admin-stats
         app.get('/admin-stats', async (req, res) => {
-            // total user *
-            // total products *
-            // total accepted products
-            // total pending products
-            // total rejected products
-            // total reviews *
             const totalUsers = await usersCollection.countDocuments();
             const totalProducts = await productsCollection.countDocuments();
             const totalReviews = await reviewsCollection.countDocuments();
             const totalAcceptedProds = await productsCollection.countDocuments({ prodStatus: 'accepted' });
             const totalPendingProds = await productsCollection.countDocuments({ prodStatus: 'pending' });
             const totalRejectedProds = await productsCollection.countDocuments({ prodStatus: 'Rejected' });
-            const totalReportedProds = await productsCollection.countDocuments({ prodIsReported: 'yes' });
             const doc = {
                 users: totalUsers,
                 products: totalProducts,
@@ -726,67 +727,43 @@ async function run() {
                 pendingProd: totalPendingProds,
                 rejectedProd: totalRejectedProds,
                 acceptedProd: totalAcceptedProds,
-                reportedProd: totalReportedProds
-            }
-            console.log('doc,', doc);
-            res.send(doc);
-        })
-        app.get('/moderator-stats', async (req, res) => {
-            // total user *
-            // total products *
-            // total accepted products
-            // total pending products
-            // total rejected products
-            // total reviews *
-            const totalUsers = await usersCollection.countDocuments();
-            const totalProducts = await productsCollection.countDocuments();
-            const totalReviews = await reviewsCollection.countDocuments();
-            const totalAcceptedProds = await productsCollection.countDocuments({ prodStatus: 'accepted' });
-            const totalPendingProds = await productsCollection.countDocuments({ prodStatus: 'pending' });
-            const totalRejectedProds = await productsCollection.countDocuments({ prodStatus: 'Rejected' });
-            const totalReportedProds = await productsCollection.countDocuments({ prodIsReported: 'yes' });
-            const doc = {
-                users: totalUsers,
-                products: totalProducts,
-                reviews: totalReviews,
-                pendingProd: totalPendingProds,
-                rejectedProd: totalRejectedProds,
-                acceptedProd: totalAcceptedProds,
-                reportedProd: totalReportedProds
-            }
-            console.log('doc,', doc);
-            res.send(doc);
-        })
-        app.get('/user-stats', async (req, res) => {
-            // total user *
-            // total products *
-            // total accepted products
-            // total pending products
-            // total rejected products
-            // total reviews *
-            const email = req.query.email;
-            const totalUsers = await usersCollection.countDocuments();
-            const totalProducts = await productsCollection.countDocuments();
-            const totalReviews = await reviewsCollection.countDocuments();
-            const totalAcceptedProds = await productsCollection.countDocuments({ prodStatus: 'accepted', 'prodOwnerInfo.email': email });
-            const totalPendingProds = await productsCollection.countDocuments({ prodStatus: 'pending', 'prodOwnerInfo.email': email });
-            const totalRejectedProds = await productsCollection.countDocuments({ prodStatus: 'Rejected', 'prodOwnerInfo.email': email });
-            const totalReportedProds = await productsCollection.countDocuments({ prodIsReported: 'yes', 'prodOwnerInfo.email': email });
-            const doc = {
-                users: totalUsers,
-                products: totalProducts,
-                reviews: totalReviews,
-                pendingProd: totalPendingProds,
-                rejectedProd: totalRejectedProds,
-                acceptedProd: totalAcceptedProds,
-                reportedProd: totalReportedProds
             }
             console.log('doc,', doc);
             res.send(doc);
         })
 
+        app.get('/moderator-stats', async (req, res) => {
+            const totalProducts = await productsCollection.countDocuments();
+            const acceptedProds = await productsCollection.countDocuments({ prodStatus: 'accepted' });
+            const pendingProds = await productsCollection.countDocuments({ prodStatus: 'pending' });
+            const rejectedProds = await productsCollection.countDocuments({ prodStatus: 'Rejected' });
+
+            const doc = {
+                totalProducts, acceptedProds, pendingProds, rejectedProds
+            }
+            res.send(doc);
+        })
+
+
+        app.get('/user-stats', async (req, res) => {
+            const email = req.query.email;
+            const userTotalProds = await productsCollection.countDocuments({ 'prodOwnerInfo.email': email })
+            const userAcceptedProds = await productsCollection.countDocuments({ prodStatus: 'accepted', 'prodOwnerInfo.email': email });
+            const userPendingProds = await productsCollection.countDocuments({ prodStatus: 'pending', 'prodOwnerInfo.email': email });
+            const userRejectedProds = await productsCollection.countDocuments({ prodStatus: 'Rejected', 'prodOwnerInfo.email': email });
+
+            const doc = {
+                userTotalProds,
+                userAcceptedProds,
+                userPendingProds,
+                userRejectedProds,
+            }
+
+            console.log('doc,', doc);
+            res.send(doc);
+        })
+
         /*******------Report Related Apis-------******* */
-        const reportsCollection = client.db("ProductPulseDB").collection("reports");
         app.get('/is-reported', async (req, res) => {
             const query = {
                 prodId: req.query.id,
@@ -809,6 +786,7 @@ async function run() {
 
         app.get('/reported-products', async (req, res) => {
             try {
+
                 const pipeline = [
                     {
                         $group: {
