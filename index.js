@@ -331,7 +331,7 @@ async function run() {
                         $sort: { prodUpvotes: -1 }
                     },
                     {
-                        $limit: 4
+                        $limit: 8
                     }
                 ];
 
