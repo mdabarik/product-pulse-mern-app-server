@@ -25,20 +25,9 @@ const client = new MongoClient(uri, {
 
 /** --------Utils IsExpired Date or Not-------- **/
 const moment = require('moment');
-// function isDateExpired(inputDate) {
-//     // Convert the input date string to a Moment.js object
-//     var inputMoment = moment(inputDate, 'YYYY-MM-DD');
-//     // Get the current date with Moment.js
-//     var currentMoment = moment();
-//     // Compare the input date with the current date
-//     return inputMoment.isBefore(currentMoment);
-// }
 function isDateExpired(inputDate) {
-    // Convert the input date string to a Moment.js object
     var inputMoment = moment(inputDate, 'YYYY-MM-DD');
-    // Get the current date with Moment.js
     var currentMoment = moment().subtract(1, 'days');
-    // Compare the input date with the current date
     return inputMoment.isBefore(currentMoment);
 }
 
@@ -718,7 +707,7 @@ async function run() {
             const totalAcceptedProds = await productsCollection.countDocuments({ prodStatus: 'accepted' });
             const totalPendingProds = await productsCollection.countDocuments({ prodStatus: 'pending' });
             const totalRejectedProds = await productsCollection.countDocuments({ prodStatus: 'Rejected' });
-            
+
             const doc = {
                 users: totalUsers,
                 products: totalProducts,
@@ -795,7 +784,7 @@ async function run() {
                     {
                         $project: {
                             _id: 0,
-                            prodId: { $toString: '$_id' } // Convert ObjectId to string
+                            prodId: { $toString: '$_id' }
                         }
                     }
                 ];
@@ -805,17 +794,16 @@ async function run() {
                 const reportedProducts = await productsCollection.find({
                     $expr: {
                         $in: [
-                            { $toString: '$_id' }, // Convert ObjectId to string
+                            { $toString: '$_id' },
                             reportedProductIds.map(p => p.prodId)
                         ]
                     }
                 })
-                    //   .sort({ reportedAt: -1 }) // Add this line to sort by reportedAt in descending order
                     .toArray();
 
                 if (reportedProducts.length === 0) {
                     console.log('No reported products found.');
-                    res.json([]); // Send an empty array or another appropriate response
+                    res.json([]);
                 } else {
                     res.json(reportedProducts);
                 }
