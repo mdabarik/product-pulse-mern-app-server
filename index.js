@@ -80,7 +80,7 @@ async function run() {
             const user = req.body;
             // console.log('/users', user);
             const query = { userEmail: user?.userEmail }
-            console.log(query, 'google signin post');
+            // console.log(query, 'google signin post');
             const existingUser = await usersCollection.findOne(query);
             if (existingUser) {
                 return res.send({ message: 'user already exists', insertedId: null })
@@ -182,7 +182,7 @@ async function run() {
 
         app.put('/add-or-update', verifyToken, async (req, res) => {
             const body = req.body;
-            console.log(body, 'addorupdate');
+            // console.log(body, 'addorupdate');
             const updatedDoc = {
                 $set: {
                     userEmail: body?.userEmail,
@@ -330,7 +330,7 @@ async function run() {
                 ];
 
                 const result = await productsCollection.aggregate(pipeline).toArray();
-                console.log(result, 'from pipeline');
+                // console.log(result, 'from pipeline');
 
                 if (result.length === 0) {
                     console.log('No products found.');
@@ -345,7 +345,7 @@ async function run() {
 
         app.get('/all-products/:email', verifyToken, async (req, res) => {
             const email = req?.params?.email;
-            console.log(email, 'all-products/email');
+            // console.log(email, 'all-products/email');
             const result = await productsCollection.find({ 'prodOwnerInfo.email': email }).sort({ prodStatus: -1 }).toArray();
             res.send(result);
         })
@@ -445,7 +445,7 @@ async function run() {
             const search = req?.query?.search;
             const skip = page * limit;
 
-            console.log(search, 'searcing...');
+            // console.log(search, 'searcing...');
 
             let query = {
                 prodStatus: 'accepted'
@@ -481,7 +481,7 @@ async function run() {
                 prodStatus: 'accepted',
             }
             const result = await productsCollection.find(query).toArray();
-            console.log(result, 'res adf adf');
+            // console.log(result, 'res adf adf');
             res.send(result);
         })
 
@@ -514,12 +514,12 @@ async function run() {
             const query = {
                 'prodOwnerInfo.email': req.query.email
             }
-            console.log(query, 'query---..');
+            // console.log(query, 'query---..');
             const result = await productsCollection.countDocuments(query);
             const data = {
                 counts: result
             }
-            console.log(data);
+            // console.log(data);
             res.send(data);
         })
 
@@ -534,7 +534,7 @@ async function run() {
                 couponCode: couponCode
             }
             const result = await couponsCollection.find(query).toArray();
-            console.log(result, 'result....');
+            // console.log(result, 'result....');
             let details = {};
             if (parseInt(result[0]?.discAmount) > 0) {
                 details = {
@@ -672,7 +672,7 @@ async function run() {
             const query = {
                 productId: id
             }
-            console.log(query, 'query get llalal');
+            // console.log(query, 'query get llalal');
             const result = await reviewsCollection.find(query).toArray();
             res.send(result);
         })
@@ -743,7 +743,7 @@ async function run() {
                 userRejectedProds,
             }
 
-            console.log('doc,', doc);
+            // console.log('doc,', doc);
             res.send(doc);
         })
 
@@ -753,7 +753,7 @@ async function run() {
                 prodId: req.query.id,
                 userEmail: req.query.email
             }
-            console.log('ispreort', query);
+            // console.log('ispreort', query);
             const counts = await reportsCollection.countDocuments(query);
             const result = {
                 isReported: counts != 0
@@ -763,7 +763,7 @@ async function run() {
 
         app.post('/report-prod', async (req, res) => {
             const reportDoc = req.body;
-            console.log(reportDoc);
+            // console.log(reportDoc);
             const result = await reportsCollection.insertOne(reportDoc);
             res.send(result);
         })
@@ -798,7 +798,7 @@ async function run() {
                     .toArray();
 
                 if (reportedProducts.length === 0) {
-                    console.log('No reported products found.');
+                    // console.log('No reported products found.');
                     res.json([]);
                 } else {
                     res.json(reportedProducts);
@@ -820,7 +820,7 @@ async function run() {
         // rejected or pending product
         app.get('/get-rejected-prod/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id, '/get-rejected-prod');
+            // console.log(id, '/get-rejected-prod');
             const query = {
                 _id: new ObjectId(id),
                 prodStatus: { $in: ['pending', 'Rejected'] }
