@@ -94,15 +94,12 @@ async function run() {
 
         app.get('/users/:email', async (req, res) => {
             const email = req?.params?.email;
-            // console.log('users/email', email);
             const result = await usersCollection.findOne({ userEmail: email })
-            // console.log(result);
             res.send(result);
         })
 
         app.get('/all-users/:email', verifyToken, verifyAdmin, async (req, res) => {
             const email = req.params.email;
-            // console.log(email, 'req, users/');
             const result = await usersCollection.find().sort({ userRole: 1 }).toArray();
             res.send(result);
         })
@@ -117,14 +114,12 @@ async function run() {
                 }
             }
             const result = await usersCollection.updateMany(filter, updatedDoc);
-            // console.log(email, userRole, 'inside patch users/email');
             res.send(result)
         })
 
         // /user-subscription
         app.patch('/user-subscription/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
-            // const userRole = req.body.userRole;
             const filter = { userEmail: email };
             const updatedDoc = {
                 $set: {
@@ -133,7 +128,6 @@ async function run() {
                 }
             }
             const result = await usersCollection.updateOne(filter, updatedDoc);
-            // console.log(email, userRole, 'inside patch users/email');
             res.send(result)
         })
 
@@ -284,6 +278,9 @@ async function run() {
 
 
         app.get('/get-trending-products', async (req, res) => {
+            // super advance but not difficult
+            // you have to understand left, right join and 
+            // relation database and aggregation technique to understand fully
             try {
                 const pipeline = [
                     {
