@@ -180,7 +180,7 @@ async function run() {
             res.send(votes);
         })
 
-        app.put('/add-or-update', async (req, res) => {
+        app.put('/add-or-update', verifyToken, async (req, res) => {
             const body = req.body;
             console.log(body, 'addorupdate');
             const updatedDoc = {
@@ -211,7 +211,7 @@ async function run() {
             res.send(result)
         })
 
-        app.put('/votes', async (req, res) => {
+        app.put('/votes', verifyToken, async (req, res) => {
             const body = req.body;
             const updatedDoc = {
                 $set: {
@@ -375,7 +375,7 @@ async function run() {
             res.send(result);
         })
         // products
-        app.patch('/products/:id', async (req, res) => {
+        app.patch('/products/:id', verifyToken, async (req, res) => {
             const product = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -393,7 +393,7 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/products/update-status/:id', async (req, res) => {
+        app.patch('/products/update-status/:id', verifyToken, async (req, res) => {
             const product = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -407,7 +407,7 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/products/update-feature/:id', async (req, res) => {
+        app.patch('/products/update-feature/:id', verifyToken, async (req, res) => {
             const product = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -421,7 +421,7 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/report-prod/:id', async (req, res) => {
+        app.patch('/report-prod/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updatedDoc = {
@@ -556,7 +556,6 @@ async function run() {
             const result = await couponsCollection.find().toArray();
             // extract active coupons
             const activeCoupon = result?.filter(coupon => {
-                // console.log('coupon');
                 return !isDateExpired(coupon?.expireDate)
             })
             res.send(activeCoupon);
@@ -582,7 +581,7 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/coupons/:id', async (req, res) => {
+        app.patch('/coupons/:id', verifyToken, verifyAdmin, async (req, res) => {
             const item = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -634,7 +633,7 @@ async function run() {
 
 
         /*----------------- Review Related Api's ------------------- */
-        app.put('/add-review', async (req, res) => {
+        app.put('/add-review', verifyToken, async (req, res) => {
             const review = req.body;
             // console.log(review, 'review');
             const filter = {
