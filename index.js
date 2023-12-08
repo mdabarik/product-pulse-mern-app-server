@@ -36,6 +36,15 @@ async function run() {
 
         /*--------Routes (API's) Setup-------*/
         const usersCollection = client.db("ProductPulseDB").collection("users");
+        const votesCollection = client.db("ProductPulseDB").collection("votes");
+        const productsCollection = client.db("ProductPulseDB").collection("products");
+        const reportsCollection = client.db("ProductPulseDB").collection("reports");
+        const reviewsCollection = client.db("ProductPulseDB").collection("reviews");
+        const couponsCollection = client.db("ProductPulseDB").collection("coupons");
+        const paymentsCollection = client.db("ProductPulseDB").collection("payments");
+        const slidersCollection = client.db("ProductPulseDB").collection("sliders");
+
+
 
         /*--------JWT API---------*/
         app.post('/jwt', async (req, res) => {
@@ -133,7 +142,6 @@ async function run() {
 
 
         /*----------------- Start Votes(Upvotes, Downvotes) Related API's ------------------- ********/
-        const votesCollection = client.db("ProductPulseDB").collection("votes");
         app.get('/get-votes', async (req, res) => {
             const prodId = req.query.id;
             const queryUpvote = {
@@ -254,9 +262,7 @@ async function run() {
 
 
         /*-------- products related api's ---------*/
-        const productsCollection = client.db("ProductPulseDB").collection("products");
-        const reportsCollection = client.db("ProductPulseDB").collection("reports");
-        const reviewsCollection = client.db("ProductPulseDB").collection("reviews");
+
 
 
         app.post('/products', verifyToken, async (req, res) => {
@@ -525,7 +531,6 @@ async function run() {
 
 
         /*-------- coupons related api's ---------*/
-        const couponsCollection = client.db("ProductPulseDB").collection("coupons");
 
         app.get('/get-coupon', verifyToken, async (req, res) => {
             // console.log(rq.);
@@ -602,7 +607,6 @@ async function run() {
         })
 
         /********-------------- Start Payment Related API's ------------------- ********/
-        const paymentsCollection = client.db("ProductPulseDB").collection("payments");
         app.post('/create-payment-intent', async (req, res) => {
             const { price } = req.body;
             const amount = parseInt(price * 100);
@@ -816,7 +820,6 @@ async function run() {
         });
 
         /*---------- sliders api's ----------*/
-        const slidersCollection = client.db("ProductPulseDB").collection("sliders");
         app.get('/sliders', async (req, res) => {
             const result = await slidersCollection.find().toArray();
             res.send(result);
